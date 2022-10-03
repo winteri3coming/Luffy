@@ -1,0 +1,7 @@
+requests
+colorama
+urllib
+ssl
+argparse
+re
+time
