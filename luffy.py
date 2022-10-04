@@ -3,17 +3,13 @@
 bad = "\033[91m[-]\033[00m"
 
 import requests
-import time
 import argparse
-import re
 import os
 import sys
 import ssl
 from urllib.parse import urlparse
 from colorama import init, Fore, Back, Style
 from func import path_only,params_only,attack
-from os.path import exists
-
 
 
 def banner():
@@ -41,9 +37,12 @@ def parse_args():
 	parser.error = parser_error
 	parser.add_argument('-f', help='urls file', dest='urls')
 	parser.add_argument('-p', help='payloads file', dest='payloads', default='payloads.txt')
+	parser.add_argument('--silent', help='silent mode', dest='silent', default=False, action='store_true')
+
 	args = parser.parse_args()
 	urls = args.urls
 	payloads = args.payloads
+	silent = args.silent
 	if not (args.urls or args.payloads):
 		parser_error("urls or payloads flags are not provided")
 	if urls and not os.path.isfile(urls):
@@ -61,25 +60,26 @@ args = parse_args()
 
 urls_file = open(args.urls).read().splitlines()
 payloads_file = open(args.payloads).read().splitlines()
+silent = args.silent
 
 for url in urls_file:
-	if ("&" or "=" or "?") not in url:
+	if (("&" not in url) and ("=" not in url) and ("?" not in url)):
 		for i in path_only(url):
 			for p in payloads_file:
 				x = i.replace('PAYLOAD',p)
-				attack(x)
+				attack(x,silent)
 	
-	elif (url.count("/") > 3 and "?" in url):
+	elif (url.count("/") > 2 and "?" in url):
 		for i in path_only(url):
 			for p in payloads_file:
 				x = i.replace('PAYLOAD',p)
-				attack(x)
-		for i in params_only(url):
+				attack(x,silent)
+		for j in params_only(url):
 			for p in payloads_file:
-				x = i.replace('PAYLOAD',p)
-				attack(x)
+				y = j.replace('PAYLOAD',p)
+				attack(y,silent)
 	else:
 		for i in params_only(url):
 			for p in payloads_file:
 				x = i.replace('PAYLOAD',p)
-				attack(x)
+				attack(x,silent)
